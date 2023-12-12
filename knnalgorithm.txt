@@ -1,0 +1,152 @@
+Opening, reading and closing csv file
+
+iris_csv = open('iris.csv','r')
+iris_csv.readlines()
+iris_csv.seek(0) 
+dataset = iris_csv.readlines() 
+dataset
+iris_csv.close() # Closing the file
+
+
+Pre Processing
+
+2.1. Separation and data cleaning
+
+# Replacing the "\n" and splitting by comma
+dataset_final = []  
+
+for line in dataset:
+    dataset_list = line.split(',')
+    dataset_list[-1] = dataset_list[-1].replace('\n','')
+    dataset_final.append(dataset_list)
+dataset_final
+
+for data in dataset_final[1:]:
+    for line in range(0,4): 
+        data[line] = float(data[line])
+print(len(dataset_final))
+dataset_final
+columns = dataset_final[0]
+columns
+records = dataset_final[1:] 
+print(len(records))
+records
+
+Object Oriented Code
+
+class KNN :
+    def __init__(self,k):
+        self.k = k
+        
+    def euclidean_distance(self, record1, record2, param_length):
+        distance = 0
+        for i in range(param_length):
+            distance += (record1[i] - record2[i])**2
+        return math.sqrt(distance)           
+
+            
+    def knn(self, test_record, training_dataset, k):
+            distances = [] 
+            length = len(test_record) - 1 # Index starts at 0
+
+            for i in range(len(training_dataset)):
+                distance = euclidean_distance(test_record,training_dataset[i], length) 
+                distances.append((distance,training_dataset[i])) 
+            distances.sort() # Ascending sort
+
+            neighbors = []
+            for j in range(k):
+                neighbors.append(distances[j][1]) # Getting only the KNN
+
+            return neighbors
+
+    def most_common(self, neighbors):
+        votes = {}
+        for i in range(len(neighbors)):
+            label = neighbors [i][-1] # Getting the class
+            if label in votes:
+                votes[label] +=1 # Counter for each class
+            else:
+                votes[label] = 1
+        sorted_votes = sorted(votes.items(), key=lambda x:x[1], reverse = True)
+
+        return sorted_votes[0][0] # Most common
+    
+   
+    def predict(self, training_dataset, test_dataset):
+        k = 3
+        predictions = []
+        for i in range(len(test_dataset)):
+            neighbors = knn(test_dataset[i], training_dataset, k)
+            most_common_neighbors = most_common(neighbors)
+            predictions.append(most_common_neighbors)
+
+        return predictions
+    
+    def accuracy(self, test_dataset, predictions):
+        correct_predictions = 0
+        for i in range(len(test_dataset)):
+
+            if (test_dataset[i][-1] == predictions[i]):
+                correct_predictions +=1
+        percentage = (correct_predictions /float( len(test_dataset)))
+
+        return round(percentage,2)
+    
+    
+    def results(training_dataset, test_dataset, predictions):
+        total = len(training_dataset) + len(test_dataset)
+        accuracy_score = accuracy(test_dataset, predictions)
+        correct = round(len(test_dataset) * accuracy_score)
+        wrong = len(test_dataset) - correct
+
+        print('Total:', total)
+        print('Test set size:', len(test_dataset))
+        print()
+        for i in range(len(test_dataset)):
+            print(f'Record [{i}]\t', f'Actual: {test_dataset[i][-1]:{20}}', 'Predicted: ', predictions[i])  
+        print()
+        print('Accuracy: %.2f'% (accuracy_score * 100),'%')        
+        print('Correct = ', correct )
+        print('Wrong = ', wrong )
+        print() 
+
+
+
+
+Results
+
+import math 
+import random
+classifier = KNN(5) # Knn with K = 5
+training_set_n, test_set_n = base_generator(records, 30) # Base generator with 30 records in test set
+predictions = classifier.predict(training_set_n, test_set_n) 
+accuracy_score = classifier.accuracy(test_set_n, predictions)
+KNN.results(training_set_n, test_set_n, predictions) # Showin
+
+def accuracy_mean(estimator, dataset, n_iterations, n_test, k):
+    accuracy_list = []
+    prediction = 0
+    accuracy_mean = 0
+    accuracy_sum = 0
+    accuracy = 0
+    
+    for i in range(n_iterations):
+        training_set_n, test_set_n = base_generator(dataset, n_test)
+        prediction = estimator.predict(training_set_n, test_set_n)  
+        accuracy = estimator.accuracy(test_set_n, prediction)
+        accuracy_list.append(accuracy)
+        
+        accuracy_sum += accuracy_list[i]
+    accuracy_mean = accuracy_sum / n_iterations
+    
+    return round(accuracy_mean, 4)
+mean_accuracy = accuracy_mean(classifier, records, 100, 30, 3) # 100 differente combinations of training and test set
+mean_accuracy
+
+
+
+
+
+
+
